@@ -503,11 +503,19 @@ const login = async (req, res) => {
     })
   } catch (error) {
     if (error.message === "Invalid Email") {
-        const questionSetUUIDs = await QuestionSet.find({ isDefault: true }).distinct('uuid');
+        // let questionSetUUIDs = await QuestionSet.find({ isDefault: true }).distinct('uuid');
+        let questionSetUUIDs=[];
+        const questionSet = await QuestionSet.find({ isDefault: true });
+        // console.log(questionSet);
+        questionSet.forEach((element) => {
+        // console.log(element);
+            questionSetUUIDs.push(element.uuid);
+        });
         let user = req.body;
         const uuid = uuidv4();
         user.uuid = uuid;
         user.question_set_ids = questionSetUUIDs;
+        console.log(questionSetUUIDs);
         try {
 
             const newUser = new User(user);
@@ -515,16 +523,18 @@ const login = async (req, res) => {
             let games_played = [];
             questionSetUUIDs.forEach(async (element) => {
                 let question_details = await QuestionSet.findOne({ uuid: element });
-                console.log(question_details);
-                console.log(element);
+                // console.log(question_details);
+                // console.log(element);
                 games_played.push({
                     question_set_id: element,
                     name: question_details.name,
                     totalQuestions: question_details.totalQuestions,
                     question_details: []
                 });
-                console.log(games_played);
+                console.log(games_played.length);
+                
                 if (questionSetUUIDs.indexOf(element) == questionSetUUIDs.length - 1) {
+                    setTimeout(async () => {
                     const user_analytics = new UserAnalytics({
                         user_uuid: uuid,
                         games_played: games_played,
@@ -539,7 +549,9 @@ const login = async (req, res) => {
                         question_set_ids: user.question_set_ids,
                     },
                     });
+                },3000);
                 }
+            
             });
             
             

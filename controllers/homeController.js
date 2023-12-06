@@ -33,16 +33,24 @@ const getAllQuestionSetsForUser = async (req, res) => {
         const uuid = req.params.uuid;
         const user = await User.findOne({ uuid: uuid });
         const questionSetIds = user.question_set_ids;
-        const questionSets = await QuestionSet.find({ uuid: { $in: questionSetIds } });
-
-        res.json({
-            status: true,
-            message: "Successfully retrieved question sets for user",
-            errors: [],
-            data: {
-                questionSets: questionSets,
-            },
+        let questionSets=[]
+        questionSetIds.forEach(async (id) => {
+            questionSets.push(await QuestionSet.findOne({ uuid: id }));
+            // console.log(questionSets);
+            if (questionSets.length == questionSetIds.length) {
+                res.json({
+                    status: true,
+                    message: "Successfully retrieved question sets for user",
+                    errors: [],
+                    data: {
+                        questionSets: questionSets,
+                    },
+                });
+            }
         });
+        // const questionSets = await QuestionSet.find({ uuid: { $in: questionSetIds } });
+        // console.log(questionSets);
+        
     } catch (error) {
         res.json({
             status: false,
